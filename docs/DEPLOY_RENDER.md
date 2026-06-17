@@ -70,6 +70,28 @@ VITE_API_URL=https://SEU_BACKEND.onrender.com
 
 Importante: depois de alterar `VITE_API_URL`, faca novo deploy do Static Site, porque o Vite grava essa variavel no build.
 
+### Erro comum no Build Command
+
+Se o Render mostrar algo como:
+
+```text
+npm error Missing script: "buildnpm"
+```
+
+o campo **Build Command** ficou com comandos colados, por exemplo:
+
+```text
+npm install; npm run buildnpm install && npm run build
+```
+
+Apague tudo e deixe exatamente:
+
+```text
+npm install && npm run build
+```
+
+Sem texto antes, sem `;`, sem outro `npm install` depois.
+
 ## 3. MongoDB Atlas
 
 No Atlas, confira:
@@ -94,4 +116,3 @@ Depois, para producao mais rigida, restrinja quando tiver IP/egress controlado.
 4. Colocar `VITE_API_URL` com a URL do backend.
 5. Voltar no backend e ajustar `CORS_ORIGIN` com a URL do frontend.
 6. Abrir o frontend e testar cadastro/login.
-
