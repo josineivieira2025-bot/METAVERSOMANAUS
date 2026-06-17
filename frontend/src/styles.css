@@ -143,6 +143,249 @@ select {
   text-align: left;
 }
 
+.gameShell {
+  background: #102019;
+  color: #f7fff9;
+  height: 100vh;
+  overflow: hidden;
+  position: relative;
+  width: 100vw;
+}
+
+.gameWorld {
+  background:
+    radial-gradient(circle at 16% 38%, rgba(49, 146, 117, 0.24), transparent 15%),
+    radial-gradient(circle at 74% 52%, rgba(170, 106, 31, 0.18), transparent 17%),
+    linear-gradient(180deg, #dceee5 0%, #c7ded4 56%, #b5d2c6 100%);
+  height: 100%;
+  overflow: hidden;
+  position: absolute;
+  width: 100%;
+}
+
+.gameWorld::before {
+  background:
+    linear-gradient(90deg, transparent 0 48%, rgba(255, 255, 255, 0.45) 48% 52%, transparent 52% 100%),
+    linear-gradient(0deg, transparent 0 48%, rgba(255, 255, 255, 0.45) 48% 52%, transparent 52% 100%);
+  background-size: 160px 160px;
+  content: "";
+  inset: 0;
+  opacity: 0.38;
+  position: absolute;
+}
+
+.gameRiver {
+  background: linear-gradient(90deg, #14566c, #2487a0);
+  bottom: -9%;
+  box-shadow: 0 -10px 24px rgba(20, 86, 108, 0.28);
+  color: rgba(255, 255, 255, 0.82);
+  font-size: clamp(1.1rem, 2vw, 2rem);
+  font-weight: 900;
+  left: -6%;
+  padding: 28px 8vw;
+  position: absolute;
+  right: -6%;
+  text-transform: uppercase;
+  transform: rotate(-3deg);
+  z-index: 1;
+}
+
+.gameRoutes {
+  inset: 0;
+  position: absolute;
+  z-index: 2;
+}
+
+.gameRoad {
+  stroke: rgba(72, 95, 83, 0.58);
+  stroke-linecap: round;
+  stroke-width: 1.6;
+}
+
+.gameRoad.busy {
+  stroke: rgba(207, 71, 55, 0.72);
+  stroke-width: 2.1;
+}
+
+.gameDistrict {
+  align-content: center;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.78), rgba(228, 238, 232, 0.86)),
+    repeating-linear-gradient(45deg, rgba(20, 32, 27, 0.08) 0 1px, transparent 1px 10px);
+  border: 2px solid rgba(77, 99, 87, 0.34);
+  border-radius: 8px;
+  color: #51645a;
+  display: grid;
+  font-weight: 900;
+  justify-items: center;
+  min-height: 54px;
+  padding: 8px;
+  position: absolute;
+  text-align: center;
+  z-index: 3;
+}
+
+.gameDistrict.unlocked {
+  background:
+    linear-gradient(135deg, rgba(218, 249, 232, 0.92), rgba(194, 233, 216, 0.9)),
+    repeating-linear-gradient(45deg, rgba(20, 32, 27, 0.08) 0 1px, transparent 1px 10px);
+  border-color: rgba(18, 166, 112, 0.72);
+  color: #102019;
+  cursor: pointer;
+}
+
+.gameDistrict:hover:not(:disabled) {
+  box-shadow: 0 0 0 4px rgba(23, 185, 127, 0.28);
+}
+
+.gameDistrict span {
+  font-size: clamp(0.68rem, 1vw, 0.92rem);
+  line-height: 1.1;
+}
+
+.gameLandmark {
+  background: #102019;
+  border: 3px solid #ffffff;
+  border-radius: 999px;
+  box-shadow: 0 3px 16px rgba(16, 32, 25, 0.3);
+  height: 18px;
+  position: absolute;
+  transform: translate(-50%, -50%);
+  width: 18px;
+  z-index: 5;
+}
+
+.gameLandmark.aeroporto {
+  background: #6d5dfc;
+}
+
+.gameLandmark.hospital {
+  background: #d84d3f;
+}
+
+.gameLandmark.porto {
+  background: #1e6b84;
+}
+
+.gameLandmark.industria {
+  background: #aa6a1f;
+}
+
+.gameLandmark.lazer {
+  background: #17b97f;
+}
+
+.avatar {
+  height: 54px;
+  position: absolute;
+  transform: translate(-50%, -76%);
+  width: 38px;
+  z-index: 8;
+}
+
+.avatarHead {
+  background: #f0c29c;
+  border: 3px solid #102019;
+  border-radius: 999px;
+  height: 22px;
+  margin: 0 auto -2px;
+  width: 22px;
+}
+
+.avatarBody {
+  background: linear-gradient(180deg, #16b77e, #0f6e55);
+  border: 3px solid #102019;
+  border-radius: 12px 12px 8px 8px;
+  height: 34px;
+  margin: 0 auto;
+  position: relative;
+  width: 28px;
+}
+
+.avatarBody::before,
+.avatarBody::after {
+  background: #102019;
+  border-radius: 999px;
+  bottom: -10px;
+  content: "";
+  height: 14px;
+  position: absolute;
+  width: 7px;
+}
+
+.avatarBody::before {
+  left: 4px;
+}
+
+.avatarBody::after {
+  right: 4px;
+}
+
+.gameHud {
+  backdrop-filter: blur(14px);
+  background: rgba(11, 24, 18, 0.82);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 8px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.22);
+  color: #f7fff9;
+  display: grid;
+  gap: 8px;
+  padding: 14px;
+  position: absolute;
+  z-index: 10;
+}
+
+.gameHud h1 {
+  font-size: clamp(1.3rem, 2.5vw, 2.4rem);
+  margin: 0;
+}
+
+.gameHud span {
+  color: #cce3d6;
+  font-size: 0.92rem;
+}
+
+.topLeft {
+  left: 18px;
+  top: 18px;
+}
+
+.topRight {
+  min-width: 230px;
+  right: 18px;
+  top: 18px;
+}
+
+.bottomLeft {
+  bottom: 18px;
+  left: 18px;
+  width: min(360px, calc(100vw - 36px));
+}
+
+.bottomRight {
+  bottom: 18px;
+  right: 18px;
+  width: min(330px, calc(100vw - 36px));
+}
+
+.bottomRight button {
+  background: #17b97f;
+  color: #07140f;
+  justify-content: start;
+}
+
+.centerBottom {
+  bottom: 18px;
+  left: 50%;
+  max-width: min(520px, calc(100vw - 36px));
+  transform: translateX(-50%);
+}
+
+.miniNeeds {
+  display: grid;
+  gap: 8px;
+}
+
 .appShell {
   display: grid;
   grid-template-columns: 260px minmax(0, 1fr);
@@ -696,5 +939,29 @@ button.mapDistrict {
 
   .creatorGrid {
     grid-template-columns: 1fr;
+  }
+
+  .gameHud {
+    position: static;
+  }
+
+  .gameShell {
+    display: grid;
+    gap: 10px;
+    height: auto;
+    min-height: 100vh;
+    overflow: auto;
+    padding: 10px;
+  }
+
+  .gameWorld {
+    aspect-ratio: 3 / 4;
+    border-radius: 8px;
+    min-height: 560px;
+    position: relative;
+  }
+
+  .centerBottom {
+    transform: none;
   }
 }

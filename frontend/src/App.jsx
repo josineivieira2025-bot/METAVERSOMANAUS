@@ -288,6 +288,147 @@ function WorldMap({ map, character, onMove }) {
   );
 }
 
+function GameWorldView({
+  character,
+  world,
+  map,
+  jobs,
+  core,
+  economy,
+  activityLog,
+  onMoveDistrict,
+  onStartJob,
+  onTickNeeds,
+  onRefresh
+}) {
+  const [playerPosition, setPlayerPosition] = useState(character.position || { x: 55, y: 60 });
+  const activeJob = jobs.find((job) => job.id === character?.activeJobId);
+  const currentDistrict = map.districts.find((district) => (
+    playerPosition.x >= district.x &&
+    playerPosition.x <= district.x + district.width &&
+    playerPosition.y >= district.y &&
+    playerPosition.y <= district.y + district.height
+  ));
+
+  useEffect(() => {
+    setPlayerPosition(character.position || { x: 55, y: 60 });
+  }, [character.id, character.position?.x, character.position?.y]);
+
+  useEffect(() => {
+    function handleKeyDown(event) {
+      const step = event.shiftKey ? 2.4 : 1.2;
+      const movement = {
+        ArrowUp: { x: 0, y: -step },
+        w: { x: 0, y: -step },
+        W: { x: 0, y: -step },
+        ArrowDown: { x: 0, y: step },
+        s: { x: 0, y: step },
+        S: { x: 0, y: step },
+        ArrowLeft: { x: -step, y: 0 },
+        a: { x: -step, y: 0 },
+        A: { x: -step, y: 0 },
+        ArrowRight: { x: step, y: 0 },
+        d: { x: step, y: 0 },
+        D: { x: step, y: 0 }
+      }[event.key];
+
+      if (!movement) return;
+      event.preventDefault();
+      setPlayerPosition((current) => ({
+        x: Math.min(94, Math.max(6, current.x + movement.x)),
+        y: Math.min(86, Math.max(8, current.y + movement.y))
+      }));
+    }
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  const districtById = new globalThis.Map(map.districts.map((district) => [district.id, district]));
+
+  return (
+    <main className="gameShell">
+      <section className="gameWorld">
+        <div className="gameRiver">Rio Negro</div>
+        <svg className="gameRoutes" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+          {map.routes.map((route) => {
+            const from = districtById.get(route.from);
+            const to = districtById.get(route.to);
+            if (!from || !to) return null;
+            const start = getDistrictCenter(from);
+            const end = getDistrictCenter(to);
+            return <line key={route.id} x1={start.x} y1={start.y} x2={end.x} y2={end.y} className={route.traffic > 70 ? 'gameRoad busy' : 'gameRoad'} />;
+          })}
+        </svg>
+
+        {map.districts.map((district) => (
+          <button
+            className={district.unlocked ? 'gameDistrict unlocked' : 'gameDistrict'}
+            disabled={!district.unlocked}
+            key={district.id}
+            onClick={() => onMoveDistrict(district.id)}
+            style={{ left: `${district.x}%`, top: `${district.y}%`, width: `${district.width}%`, height: `${district.height}%` }}
+            type="button"
+          >
+            <span>{district.name}</span>
+          </button>
+        ))}
+
+        {map.landmarks.map((landmark) => (
+          <div
+            className={`gameLandmark ${landmark.type}`}
+            key={landmark.id}
+            style={{ left: `${landmark.x}%`, top: `${landmark.y}%` }}
+            title={landmark.name}
+          />
+        ))}
+
+        <div className="avatar" style={{ left: `${playerPosition.x}%`, top: `${playerPosition.y}%` }}>
+          <div className="avatarHead" />
+          <div className="avatarBody" />
+        </div>
+      </section>
+
+      <aside className="gameHud topLeft">
+        <p className="eyebrow">Manaus Online</p>
+        <h1>{character.fullName}</h1>
+        <span>{currentDistrict?.name || character.district}</span>
+      </aside>
+
+      <aside className="gameHud topRight">
+        <strong>{world.weather?.condition} {world.weather?.intensity}%</strong>
+        <span>Carteira {money(character.walletCents)}</span>
+        <span>{activeJob ? activeJob.name : 'Sem trabalho ativo'}</span>
+      </aside>
+
+      <aside className="gameHud bottomLeft">
+        <div className="miniNeeds">
+          <NeedBar label="Fome" value={character.needs.hunger} />
+          <NeedBar label="Sede" value={character.needs.thirst} />
+          <NeedBar label="Energia" value={character.needs.energy} />
+          <NeedBar label="Saude" value={character.needs.health} />
+        </div>
+      </aside>
+
+      <aside className="gameHud bottomRight">
+        <button type="button" onClick={onTickNeeds}>Passar tempo</button>
+        <button type="button" onClick={onRefresh}>Atualizar mundo</button>
+        {jobs.slice(0, 3).map((job) => (
+          <button key={job.id} type="button" onClick={() => onStartJob(job.id)}>
+            Trabalhar: {job.name}
+          </button>
+        ))}
+      </aside>
+
+      <aside className="gameHud centerBottom">
+        <span>WASD ou setas para andar</span>
+        <span>{core.vehicles.length} veiculos | {core.inventory.length} itens | {economy.prices.length} precos</span>
+        <span>{activityLog[0]}</span>
+      </aside>
+    </main>
+  );
+}
+
 export function App() {
   const [session, setSession] = useState(null);
   const [screen, setScreen] = useState('auth');
@@ -431,150 +572,19 @@ export function App() {
     return <LoadingScreen account={session.account} onCreateCharacter={() => setScreen('create-character')} />;
   }
 
-  const activeJob = jobs.find((job) => job.id === character?.activeJobId);
-
   return (
-    <main className="appShell">
-      <aside className="sidebar">
-        <div className="brandBlock">
-          <span>MMORPG 16+</span>
-          <h1>Manaus Online</h1>
-        </div>
-        <nav className="navList" aria-label="Modulos">
-          <a href="#mundo"><MapIcon size={18} /> Mundo</a>
-          <a href="#personagem"><UserRound size={18} /> Personagem</a>
-          <a href="#profissoes"><BriefcaseBusiness size={18} /> Trabalho</a>
-          <a href="#inventario"><Package size={18} /> Inventario</a>
-          <a href="#veiculos"><Car size={18} /> Veiculos</a>
-          <a href="#servicos"><Shield size={18} /> Servicos</a>
-        </nav>
-      </aside>
-
-      <section className="workspace">
-        <header className="topbar">
-          <div>
-            <p className="eyebrow">Jogando como {session.account.displayName}</p>
-            <h2>{character.fullName}</h2>
-          </div>
-          <div className={apiStatus === 'online' ? 'serverPill online' : 'serverPill'}>
-            {apiStatus === 'online' ? 'API online' : 'Modo local'}
-          </div>
-        </header>
-
-        <section className="statsGrid" id="mundo">
-          <StatTile icon={CloudRain} label="Clima" value={`${world.weather?.condition} ${world.weather?.intensity}%`} />
-          <StatTile icon={MapIcon} label="Horario" value={worldClock} />
-          <StatTile icon={Wallet} label="Carteira" value={money(character.walletCents)} />
-          <StatTile icon={Building2} label="Empresas" value={core.companies.length} />
-          <StatTile icon={Home} label="Imoveis" value={core.properties.length} />
-          <StatTile icon={Car} label="Veiculos" value={core.vehicles.length} />
-          <StatTile icon={Shield} label="Servicos" value={core.services.length} />
-          <StatTile icon={Banknote} label="Mercado" value={economy.prices.length} />
-        </section>
-
-        <section className="mainGrid">
-          <article className="panel">
-            <div className="panelHeader">
-              <div>
-                <p className="eyebrow">Mapa 2D jogavel</p>
-                <h3>{character.district}</h3>
-              </div>
-              <button className="iconButton" type="button" onClick={() => loadGame(session.account.id)} aria-label="Atualizar">
-                <RefreshCw size={18} />
-              </button>
-            </div>
-            <WorldMap map={cityMap} character={character} onMove={moveTo} />
-          </article>
-
-          <article className="panel" id="personagem">
-            <div className="panelHeader">
-              <div>
-                <p className="eyebrow">Personagem</p>
-                <h3>Nivel {character.level}</h3>
-              </div>
-              <strong className="activeJob">{activeJob ? activeJob.name : 'Livre'}</strong>
-            </div>
-            <div className="profileLine">
-              <span>{character.gender}</span>
-              <span>{character.district}</span>
-              <span>{character.experience} XP</span>
-              <span>{character.appearance?.outfit || 'casual'}</span>
-            </div>
-            <div className="needsList">
-              <NeedBar label="Fome" value={character.needs.hunger} />
-              <NeedBar label="Sede" value={character.needs.thirst} />
-              <NeedBar label="Sono" value={character.needs.sleep} />
-              <NeedBar label="Energia" value={character.needs.energy} />
-              <NeedBar label="Saude" value={character.needs.health} />
-              <NeedBar label="Higiene" value={character.needs.hygiene} />
-              <NeedBar label="Estresse" value={character.needs.stress} dangerHigh />
-              <NeedBar label="Felicidade" value={character.needs.happiness} />
-            </div>
-            <button className="wideButton" type="button" onClick={tickNeeds}>Passar tempo</button>
-          </article>
-        </section>
-
-        <section className="panel" id="profissoes">
-          <div className="panelHeader">
-            <div>
-              <p className="eyebrow">Trabalho e missoes</p>
-              <h3>Acoes jogaveis</h3>
-            </div>
-          </div>
-          <div className="jobsGrid">
-            {jobs.map((job) => (
-              <article className="jobCard" key={job.id}>
-                <div>
-                  <span>{job.category} | {job.district}</span>
-                  <h4>{job.name}</h4>
-                  <p>{job.mission}</p>
-                </div>
-                <div className="jobFooter">
-                  <strong>{money(job.salaryCents)}</strong>
-                  <button type="button" onClick={() => startJob(job.id)}><Play size={16} /> Trabalhar</button>
-                </div>
-              </article>
-            ))}
-          </div>
-        </section>
-
-        <section className="systemMatrix">
-          <article className="panel" id="inventario">
-            <div className="panelHeader"><div><p className="eyebrow">Inventario</p><h3>Itens</h3></div></div>
-            <div className="compactList">
-              {core.inventory.map((item) => (
-                <div className="compactRow" key={item.id}><Package size={18} /><div><strong>{item.name}</strong><span>{item.code} | qtd {item.quantity}</span></div></div>
-              ))}
-            </div>
-          </article>
-
-          <article className="panel" id="veiculos">
-            <div className="panelHeader"><div><p className="eyebrow">Veiculos</p><h3>Frota</h3></div></div>
-            <div className="compactList">
-              {core.vehicles.map((vehicle) => (
-                <div className="compactRow" key={vehicle.id}><Car size={18} /><div><strong>{vehicle.model}</strong><span>{vehicle.plate} | combustivel {vehicle.fuelPercent}%</span></div><b>{vehicle.conditionPercent}%</b></div>
-              ))}
-            </div>
-          </article>
-        </section>
-
-        <section className="systemMatrix" id="servicos">
-          <article className="panel">
-            <div className="panelHeader"><div><p className="eyebrow">Missoes</p><h3>Disponiveis</h3></div></div>
-            <div className="compactList">
-              {core.missions.map((mission) => (
-                <div className="compactRow" key={mission.id}><Play size={18} /><div><strong>{mission.title}</strong><span>{mission.district} | {mission.xpReward} XP</span></div><b>{money(mission.rewardCents)}</b></div>
-              ))}
-            </div>
-          </article>
-          <article className="panel">
-            <div className="panelHeader"><div><p className="eyebrow">Log</p><h3>Eventos</h3></div></div>
-            <div className="activityLog">
-              {activityLog.map((entry, index) => <p key={`${entry}-${index}`}>{entry}</p>)}
-            </div>
-          </article>
-        </section>
-      </section>
-    </main>
+    <GameWorldView
+      activityLog={activityLog}
+      character={character}
+      core={core}
+      economy={economy}
+      jobs={jobs}
+      map={cityMap}
+      onMoveDistrict={moveTo}
+      onRefresh={() => loadGame(session.account.id)}
+      onStartJob={startJob}
+      onTickNeeds={tickNeeds}
+      world={world}
+    />
   );
 }
