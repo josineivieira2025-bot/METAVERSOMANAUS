@@ -131,6 +131,23 @@ function AuthScreen({ onAuth }) {
   );
 }
 
+function LoadingScreen({ account, onCreateCharacter }) {
+  return (
+    <main className="authShell">
+      <section className="authPanel">
+        <p className="eyebrow">Carregando</p>
+        <h1>Preparando seu personagem</h1>
+        <p className="formMessage">Se esta tela demorar, crie um personagem para entrar no mundo.</p>
+        <button className="wideButton" type="button" onClick={onCreateCharacter}>
+          <UserRound size={18} />
+          Criar personagem
+        </button>
+        {account && <p className="formMessage">Conta: {account.displayName}</p>}
+      </section>
+    </main>
+  );
+}
+
 function CharacterCreator({ account, onCreated }) {
   const [form, setForm] = useState({
     fullName: account.displayName || 'Novo Morador',
@@ -140,14 +157,20 @@ function CharacterCreator({ account, onCreated }) {
     hair: 'curto',
     outfit: 'casual'
   });
+  const [message, setMessage] = useState('');
 
   async function submit(event) {
     event.preventDefault();
-    const data = await requestJson('/characters', {
-      method: 'POST',
-      body: JSON.stringify({ ...form, accountId: account.id })
-    });
-    onCreated(data.character);
+    setMessage('Criando personagem...');
+    try {
+      const data = await requestJson('/characters', {
+        method: 'POST',
+        body: JSON.stringify({ ...form, accountId: account.id })
+      });
+      onCreated(data.character);
+    } catch {
+      setMessage('Nao foi possivel criar o personagem. Confira se a API esta online.');
+    }
   }
 
   return (
@@ -198,6 +221,7 @@ function CharacterCreator({ account, onCreated }) {
             Criar e entrar
           </button>
         </form>
+        {message && <p className="formMessage">{message}</p>}
       </section>
     </main>
   );
@@ -225,6 +249,10 @@ function StatTile({ icon: Icon, label, value }) {
 }
 
 function WorldMap({ map, character, onMove }) {
+  if (!character) {
+    return <div className="mapCanvas playMap" />;
+  }
+
   const districtById = new globalThis.Map(map.districts.map((district) => [district.id, district]));
 
   return (
@@ -333,7 +361,13 @@ export function App() {
     setCharacters([createdCharacter]);
     setScreen('world');
     setActivityLog((current) => [`Personagem criado: ${createdCharacter.fullName}`, ...current].slice(0, 6));
-    await loadGame(session.account.id);
+    try {
+      const loadedCharacters = await loadGame(session.account.id);
+      const syncedCharacter = loadedCharacters.find((item) => item.id === createdCharacter.id) || createdCharacter;
+      setCharacter(syncedCharacter);
+    } catch {
+      setApiStatus('offline');
+    }
   }
 
   async function moveTo(mapDistrictId) {
@@ -391,6 +425,10 @@ export function App() {
         </section>
       </main>
     );
+  }
+
+  if (!character) {
+    return <LoadingScreen account={session.account} onCreateCharacter={() => setScreen('create-character')} />;
   }
 
   const activeJob = jobs.find((job) => job.id === character?.activeJobId);
