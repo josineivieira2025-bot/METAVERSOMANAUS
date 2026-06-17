@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useRef } from 'react';
 import {
   Banknote,
   BriefcaseBusiness,
@@ -15,6 +16,7 @@ import {
   UserRound,
   Wallet
 } from 'lucide-react';
+import * as THREE from 'three';
 
 const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
@@ -393,46 +395,14 @@ function GameWorldView({
 
   return (
     <main className="gameShell">
-      <section className="gameWorld">
-        <div className="gameRiver">Rio Negro</div>
-        <svg className="gameRoutes" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
-          {map.routes.map((route) => {
-            const from = districtById.get(route.from);
-            const to = districtById.get(route.to);
-            if (!from || !to) return null;
-            const start = getDistrictCenter(from);
-            const end = getDistrictCenter(to);
-            return <line key={route.id} x1={start.x} y1={start.y} x2={end.x} y2={end.y} className={route.traffic > 70 ? 'gameRoad busy' : 'gameRoad'} />;
-          })}
-        </svg>
-
-        {map.districts.map((district) => (
-          <button
-            className={district.unlocked ? 'gameDistrict unlocked' : 'gameDistrict'}
-            disabled={!district.unlocked}
-            key={district.id}
-            onClick={() => onMoveDistrict(district.id)}
-            style={{ left: `${district.x}%`, top: `${district.y}%`, width: `${district.width}%`, height: `${district.height}%` }}
-            type="button"
-          >
-            <span>{district.name}</span>
-          </button>
-        ))}
-
-        {map.landmarks.map((landmark) => (
-          <div
-            className={`gameLandmark ${landmark.type}`}
-            key={landmark.id}
-            style={{ left: `${landmark.x}%`, top: `${landmark.y}%` }}
-            title={landmark.name}
-          />
-        ))}
-
-        <div className={isJumping ? 'avatar jumping' : 'avatar'} style={{ left: `${playerPosition.x}%`, top: `${playerPosition.y}%` }}>
-          <div className="avatarHead" />
-          <div className="avatarBody" />
-        </div>
-      </section>
+      <ThreeCityWorld
+        isJumping={isJumping}
+        isRunning={isRunning}
+        joystick={joystick}
+        map={map}
+        playerPosition={playerPosition}
+        setPlayerPosition={setPlayerPosition}
+      />
 
       <aside className="gameHud topLeft">
         <p className="eyebrow">Manaus Online</p>
@@ -518,12 +488,275 @@ function GameWorldView({
       )}
 
       <aside className="gameHud centerBottom">
-        <span>Analógico no mobile | WASD ou setas no PC</span>
+        <span>Analógico no mobile | WASD ou setas no PC | câmera em terceira pessoa</span>
         <span>{core.vehicles.length} veiculos | {core.inventory.length} itens | {economy.prices.length} precos</span>
         <span>{activityLog[0]}</span>
       </aside>
     </main>
   );
+}
+
+function ThreeCityWorld({ map, playerPosition, setPlayerPosition, joystick, isRunning, isJumping }) {
+  const mountRef = useRef(null);
+  const stateRef = useRef({
+    keys: new Set(),
+    player: null,
+    velocityY: 0,
+    isGrounded: true,
+    position: playerPosition,
+    joystick,
+    isRunning,
+    isJumping
+  });
+
+  useEffect(() => {
+    stateRef.current.position = playerPosition;
+    stateRef.current.joystick = joystick;
+    stateRef.current.isRunning = isRunning;
+    stateRef.current.isJumping = isJumping;
+  }, [playerPosition, joystick, isRunning, isJumping]);
+
+  useEffect(() => {
+    const mount = mountRef.current;
+    if (!mount) return undefined;
+
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0xbfd8ce);
+    scene.fog = new THREE.Fog(0xbfd8ce, 55, 150);
+
+    const camera = new THREE.PerspectiveCamera(58, mount.clientWidth / mount.clientHeight, 0.1, 260);
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setSize(mount.clientWidth, mount.clientHeight);
+    renderer.shadowMap.enabled = true;
+    mount.appendChild(renderer.domElement);
+
+    const ambient = new THREE.HemisphereLight(0xffffff, 0x6a7f72, 1.6);
+    scene.add(ambient);
+
+    const sun = new THREE.DirectionalLight(0xffffff, 2.2);
+    sun.position.set(35, 52, 25);
+    sun.castShadow = true;
+    scene.add(sun);
+
+    const ground = new THREE.Mesh(
+      new THREE.PlaneGeometry(170, 170),
+      new THREE.MeshStandardMaterial({ color: 0x8fc4a8, roughness: 0.9 })
+    );
+    ground.rotation.x = -Math.PI / 2;
+    ground.receiveShadow = true;
+    scene.add(ground);
+
+    const roadMaterial = new THREE.MeshStandardMaterial({ color: 0x3b4c45, roughness: 0.82 });
+    for (let i = -4; i <= 4; i += 1) {
+      const horizontal = new THREE.Mesh(new THREE.BoxGeometry(150, 0.08, 3.2), roadMaterial);
+      horizontal.position.set(0, 0.04, i * 16);
+      horizontal.receiveShadow = true;
+      scene.add(horizontal);
+
+      const vertical = new THREE.Mesh(new THREE.BoxGeometry(3.2, 0.08, 150), roadMaterial);
+      vertical.position.set(i * 16, 0.05, 0);
+      vertical.receiveShadow = true;
+      scene.add(vertical);
+    }
+
+    const river = new THREE.Mesh(
+      new THREE.BoxGeometry(190, 0.12, 26),
+      new THREE.MeshStandardMaterial({ color: 0x1b7892, roughness: 0.45, metalness: 0.05 })
+    );
+    river.position.set(0, 0.07, 66);
+    scene.add(river);
+
+    const buildingMaterials = [
+      new THREE.MeshStandardMaterial({ color: 0xe5ebe7, roughness: 0.76 }),
+      new THREE.MeshStandardMaterial({ color: 0xcfd8d2, roughness: 0.8 }),
+      new THREE.MeshStandardMaterial({ color: 0xaec2b8, roughness: 0.82 }),
+      new THREE.MeshStandardMaterial({ color: 0xd7c7ae, roughness: 0.8 })
+    ];
+
+    map.districts.forEach((district, index) => {
+      const center = worldToThree(getDistrictCenter(district));
+      const districtBase = new THREE.Mesh(
+        new THREE.BoxGeometry(Math.max(6, district.width * 0.72), 0.18, Math.max(5, district.height * 0.72)),
+        new THREE.MeshStandardMaterial({ color: district.unlocked ? 0x6bd6a3 : 0xbfc9c3, roughness: 0.85 })
+      );
+      districtBase.position.set(center.x, 0.11, center.z);
+      scene.add(districtBase);
+
+      const count = district.unlocked ? 4 : 2;
+      for (let i = 0; i < count; i += 1) {
+        const height = 2.5 + ((index + i) % 5) * 1.4;
+        const building = new THREE.Mesh(
+          new THREE.BoxGeometry(2.6 + (i % 2), height, 2.4 + ((i + 1) % 2)),
+          buildingMaterials[(index + i) % buildingMaterials.length]
+        );
+        building.position.set(
+          center.x + (i - 1.5) * 3.3,
+          height / 2,
+          center.z + ((i % 2) - 0.5) * 4.2
+        );
+        building.castShadow = true;
+        building.receiveShadow = true;
+        scene.add(building);
+      }
+    });
+
+    map.landmarks.forEach((landmark) => {
+      const position = worldToThree(landmark);
+      const marker = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.8, 0.8, 5, 18),
+        new THREE.MeshStandardMaterial({ color: landmarkColor(landmark.type), roughness: 0.5 })
+      );
+      marker.position.set(position.x, 2.5, position.z);
+      marker.castShadow = true;
+      scene.add(marker);
+    });
+
+    const player = createPlayerMesh();
+    const initial = worldToThree(playerPosition);
+    player.position.set(initial.x, 0, initial.z);
+    scene.add(player);
+    stateRef.current.player = player;
+
+    function onKeyDown(event) {
+      stateRef.current.keys.add(event.key.toLowerCase());
+    }
+
+    function onKeyUp(event) {
+      stateRef.current.keys.delete(event.key.toLowerCase());
+    }
+
+    function onResize() {
+      camera.aspect = mount.clientWidth / mount.clientHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(mount.clientWidth, mount.clientHeight);
+    }
+
+    window.addEventListener('keydown', onKeyDown);
+    window.addEventListener('keyup', onKeyUp);
+    window.addEventListener('resize', onResize);
+
+    const clock = new THREE.Clock();
+    let frameId = 0;
+
+    function animate() {
+      const delta = Math.min(clock.getDelta(), 0.05);
+      const state = stateRef.current;
+      const speed = state.isRunning ? 22 : 12;
+      const direction = new THREE.Vector3();
+
+      if (state.keys.has('w') || state.keys.has('arrowup')) direction.z -= 1;
+      if (state.keys.has('s') || state.keys.has('arrowdown')) direction.z += 1;
+      if (state.keys.has('a') || state.keys.has('arrowleft')) direction.x -= 1;
+      if (state.keys.has('d') || state.keys.has('arrowright')) direction.x += 1;
+      direction.x += state.joystick.dx || 0;
+      direction.z += state.joystick.dy || 0;
+
+      if (direction.lengthSq() > 0.001) {
+        direction.normalize();
+        player.position.x += direction.x * speed * delta;
+        player.position.z += direction.z * speed * delta;
+        player.rotation.y = Math.atan2(direction.x, direction.z);
+      }
+
+      if (state.isJumping && state.isGrounded) {
+        state.velocityY = 9;
+        state.isGrounded = false;
+      }
+
+      state.velocityY -= 24 * delta;
+      player.position.y += state.velocityY * delta;
+      if (player.position.y <= 0) {
+        player.position.y = 0;
+        state.velocityY = 0;
+        state.isGrounded = true;
+      }
+
+      player.position.x = THREE.MathUtils.clamp(player.position.x, -76, 76);
+      player.position.z = THREE.MathUtils.clamp(player.position.z, -76, 76);
+
+      const targetCamera = new THREE.Vector3(player.position.x, player.position.y + 12, player.position.z + 18);
+      camera.position.lerp(targetCamera, 0.09);
+      camera.lookAt(player.position.x, player.position.y + 3, player.position.z);
+
+      const uiPosition = threeToWorld(player.position);
+      state.position = uiPosition;
+      if (frameId % 12 === 0) {
+        setPlayerPosition(uiPosition);
+      }
+
+      renderer.render(scene, camera);
+      frameId = requestAnimationFrame(animate);
+    }
+
+    animate();
+
+    return () => {
+      cancelAnimationFrame(frameId);
+      window.removeEventListener('keydown', onKeyDown);
+      window.removeEventListener('keyup', onKeyUp);
+      window.removeEventListener('resize', onResize);
+      renderer.dispose();
+      mount.removeChild(renderer.domElement);
+    };
+  }, [map]);
+
+  return <section className="threeWorld" ref={mountRef} />;
+}
+
+function worldToThree(point) {
+  return {
+    x: (point.x - 50) * 1.45,
+    z: (point.y - 50) * 1.45
+  };
+}
+
+function threeToWorld(position) {
+  return {
+    x: Number(THREE.MathUtils.clamp(position.x / 1.45 + 50, 0, 100).toFixed(2)),
+    y: Number(THREE.MathUtils.clamp(position.z / 1.45 + 50, 0, 100).toFixed(2))
+  };
+}
+
+function landmarkColor(type) {
+  return {
+    aeroporto: 0x6d5dfc,
+    hospital: 0xd84d3f,
+    porto: 0x1e6b84,
+    industria: 0xaa6a1f,
+    lazer: 0x17b97f,
+    delegacia: 0x1d1d1d,
+    forum: 0x7a5bde,
+    universidade: 0x287a5c
+  }[type] || 0x102019;
+}
+
+function createPlayerMesh() {
+  const group = new THREE.Group();
+  const bodyMaterial = new THREE.MeshStandardMaterial({ color: 0x14b77c, roughness: 0.5 });
+  const darkMaterial = new THREE.MeshStandardMaterial({ color: 0x102019, roughness: 0.7 });
+  const skinMaterial = new THREE.MeshStandardMaterial({ color: 0xf0c29c, roughness: 0.62 });
+
+  const body = new THREE.Mesh(new THREE.CapsuleGeometry(1, 2.2, 6, 12), bodyMaterial);
+  body.position.y = 2.3;
+  body.castShadow = true;
+  group.add(body);
+
+  const head = new THREE.Mesh(new THREE.SphereGeometry(0.78, 18, 18), skinMaterial);
+  head.position.y = 4.25;
+  head.castShadow = true;
+  group.add(head);
+
+  const leftLeg = new THREE.Mesh(new THREE.CapsuleGeometry(0.22, 1.3, 4, 8), darkMaterial);
+  leftLeg.position.set(-0.38, 0.75, 0);
+  leftLeg.castShadow = true;
+  group.add(leftLeg);
+
+  const rightLeg = leftLeg.clone();
+  rightLeg.position.x = 0.38;
+  group.add(rightLeg);
+
+  return group;
 }
 
 export function App() {

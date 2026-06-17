@@ -163,6 +163,21 @@ select {
   width: 100%;
 }
 
+.threeWorld {
+  background: #9fc9b7;
+  height: 100%;
+  inset: 0;
+  overflow: hidden;
+  position: absolute;
+  width: 100%;
+}
+
+.threeWorld canvas {
+  display: block;
+  height: 100%;
+  width: 100%;
+}
+
 .gameWorld::before {
   background:
     linear-gradient(90deg, transparent 0 48%, rgba(255, 255, 255, 0.45) 48% 52%, transparent 52% 100%),
@@ -1034,6 +1049,12 @@ button.mapDistrict {
 
   .gameWorld {
     aspect-ratio: 3 / 4;
+    border-radius: 8px;
+    min-height: 560px;
+    position: relative;
+  }
+
+  .threeWorld {
     border-radius: 8px;
     min-height: 560px;
     position: relative;
