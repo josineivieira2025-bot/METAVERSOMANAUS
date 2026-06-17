@@ -1,0 +1,700 @@
+:root {
+  color: #14201b;
+  background: #eef2ef;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  letter-spacing: 0;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+}
+
+button,
+a {
+  font: inherit;
+}
+
+button {
+  align-items: center;
+  border: 0;
+  border-radius: 8px;
+  cursor: pointer;
+  display: inline-flex;
+  font-weight: 800;
+  gap: 8px;
+  justify-content: center;
+  min-height: 40px;
+  padding: 0 14px;
+}
+
+input,
+select {
+  background: #f7faf8;
+  border: 1px solid #cad8d0;
+  border-radius: 8px;
+  color: #14201b;
+  font: inherit;
+  min-height: 42px;
+  padding: 0 12px;
+  width: 100%;
+}
+
+.authShell {
+  align-items: center;
+  background:
+    linear-gradient(90deg, rgba(20, 32, 27, 0.9), rgba(20, 32, 27, 0.42)),
+    linear-gradient(135deg, #174638, #1f6d82);
+  display: grid;
+  min-height: 100vh;
+  padding: 22px;
+}
+
+.authPanel {
+  background: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.42);
+  border-radius: 8px;
+  margin: 0 auto;
+  max-width: 430px;
+  padding: 24px;
+  width: 100%;
+}
+
+.authPanel.wide {
+  max-width: 760px;
+}
+
+.authPanel h1 {
+  font-size: clamp(2rem, 5vw, 3.4rem);
+  line-height: 0.96;
+  margin-bottom: 20px;
+}
+
+.modeSwitch {
+  background: #eef4f0;
+  border-radius: 8px;
+  display: grid;
+  gap: 4px;
+  grid-template-columns: 1fr 1fr;
+  margin-bottom: 16px;
+  padding: 4px;
+}
+
+.modeSwitch button {
+  background: transparent;
+  color: #52645a;
+}
+
+.modeSwitch .selected {
+  background: #14201b;
+  color: #f7fff9;
+}
+
+.formStack,
+.creatorGrid {
+  display: grid;
+  gap: 12px;
+}
+
+.creatorGrid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.formStack label,
+.creatorGrid label {
+  color: #43524a;
+  display: grid;
+  font-size: 0.88rem;
+  font-weight: 800;
+  gap: 6px;
+}
+
+.formStack button,
+.spanButton {
+  background: #17b97f;
+  color: #07140f;
+}
+
+.spanButton {
+  grid-column: 1 / -1;
+}
+
+.formMessage {
+  color: #617269;
+  margin: 14px 0 0;
+}
+
+.characterSelectList {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.characterSelectList button {
+  background: #f4f8f6;
+  color: #14201b;
+  display: grid;
+  grid-template-columns: 24px 1fr auto;
+  justify-content: stretch;
+  text-align: left;
+}
+
+.appShell {
+  display: grid;
+  grid-template-columns: 260px minmax(0, 1fr);
+  min-height: 100vh;
+}
+
+.sidebar {
+  background: #14201b;
+  color: #f4fbf7;
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+  padding: 28px 18px;
+}
+
+.brandBlock span,
+.eyebrow {
+  color: #17b97f;
+  font-size: 0.78rem;
+  font-weight: 900;
+  margin: 0 0 8px;
+  text-transform: uppercase;
+}
+
+h1,
+h2,
+h3,
+h4,
+p {
+  margin-top: 0;
+}
+
+.brandBlock h1 {
+  font-size: 1.7rem;
+  line-height: 1;
+  margin: 0;
+}
+
+.navList {
+  display: grid;
+  gap: 8px;
+}
+
+.navList a {
+  align-items: center;
+  border-radius: 8px;
+  color: #d9e9df;
+  display: flex;
+  gap: 10px;
+  min-height: 42px;
+  padding: 0 12px;
+  text-decoration: none;
+}
+
+.navList a:hover {
+  background: #22332b;
+}
+
+.workspace {
+  display: grid;
+  gap: 18px;
+  padding: 22px;
+}
+
+.topbar {
+  align-items: center;
+  display: flex;
+  gap: 18px;
+  justify-content: space-between;
+}
+
+.topbar h2 {
+  font-size: clamp(1.8rem, 3vw, 3rem);
+  line-height: 1;
+  margin: 0;
+}
+
+.serverPill {
+  align-items: center;
+  background: #fff7dc;
+  border: 1px solid #ead997;
+  border-radius: 999px;
+  color: #715600;
+  display: flex;
+  font-weight: 900;
+  gap: 8px;
+  min-height: 38px;
+  padding: 0 14px;
+  white-space: nowrap;
+}
+
+.serverPill.online {
+  background: #dff8ec;
+  border-color: #9fdfbe;
+  color: #0f774e;
+}
+
+.statsGrid,
+.mainGrid,
+.bottomGrid,
+.systemMatrix {
+  display: grid;
+  gap: 14px;
+}
+
+.statsGrid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.mainGrid,
+.bottomGrid,
+.systemMatrix {
+  grid-template-columns: minmax(360px, 0.85fr) minmax(0, 1.15fr);
+}
+
+.statTile,
+.panel,
+.jobCard {
+  background: #ffffff;
+  border: 1px solid #d7dfd9;
+  border-radius: 8px;
+}
+
+.statTile {
+  display: grid;
+  gap: 8px;
+  min-height: 118px;
+  padding: 18px;
+}
+
+.statTile svg {
+  color: #0d9167;
+}
+
+.statTile span {
+  color: #64736b;
+  font-size: 0.9rem;
+}
+
+.statTile strong {
+  font-size: 1.25rem;
+}
+
+.panel {
+  padding: 18px;
+}
+
+.panelHeader {
+  align-items: start;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.panelHeader h3 {
+  font-size: 1.35rem;
+  margin: 0;
+}
+
+.iconButton {
+  aspect-ratio: 1;
+  background: #e8f4ee;
+  color: #0d9167;
+  padding: 0;
+  width: 40px;
+}
+
+.profileLine {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.profileLine span,
+.activeJob {
+  background: #eef4f0;
+  border-radius: 999px;
+  color: #43524a;
+  font-size: 0.86rem;
+  font-weight: 800;
+  padding: 7px 10px;
+}
+
+.needsList {
+  display: grid;
+  gap: 10px;
+}
+
+.needRow {
+  align-items: center;
+  display: grid;
+  gap: 10px;
+  grid-template-columns: 86px minmax(0, 1fr) 34px;
+}
+
+.needRow span {
+  color: #4c5d54;
+  font-size: 0.9rem;
+}
+
+.needTrack {
+  background: #e8edea;
+  border-radius: 999px;
+  height: 10px;
+  overflow: hidden;
+}
+
+.needFill {
+  background: #13a873;
+  border-radius: inherit;
+  height: 100%;
+}
+
+.needFill.danger {
+  background: #d84d3f;
+}
+
+.needRow strong {
+  font-size: 0.86rem;
+  text-align: right;
+}
+
+.wideButton {
+  background: #16231d;
+  color: #f7fff9;
+  margin-top: 18px;
+  width: 100%;
+}
+
+.districtGrid,
+.jobsGrid {
+  display: grid;
+  gap: 12px;
+}
+
+.mapCanvas {
+  aspect-ratio: 16 / 9;
+  background:
+    linear-gradient(180deg, rgba(207, 232, 223, 0.82), rgba(238, 244, 240, 0.96)),
+    repeating-linear-gradient(35deg, rgba(18, 32, 27, 0.05) 0 1px, transparent 1px 13px);
+  border: 1px solid #d6e1db;
+  border-radius: 8px;
+  margin-bottom: 14px;
+  min-height: 340px;
+  overflow: hidden;
+  position: relative;
+}
+
+.riverBand {
+  background: linear-gradient(90deg, #1e6b84, #2f8ca5);
+  bottom: -8%;
+  color: #e9fbff;
+  font-size: 0.8rem;
+  font-weight: 900;
+  left: -4%;
+  letter-spacing: 0;
+  padding: 10px 26px;
+  position: absolute;
+  right: -4%;
+  text-transform: uppercase;
+  transform: rotate(-3deg);
+}
+
+.routeLayer {
+  inset: 0;
+  position: absolute;
+  z-index: 1;
+}
+
+.routeLine {
+  stroke: rgba(35, 66, 55, 0.42);
+  stroke-dasharray: 2 2;
+  stroke-linecap: round;
+  stroke-width: 0.8;
+}
+
+.routeLine.busy {
+  stroke: rgba(216, 77, 63, 0.68);
+  stroke-width: 1.1;
+}
+
+.mapDistrict {
+  align-content: center;
+  background: rgba(255, 255, 255, 0.74);
+  border: 1px solid rgba(88, 110, 98, 0.32);
+  border-radius: 8px;
+  color: #6b756f;
+  display: grid;
+  gap: 3px;
+  justify-items: center;
+  min-height: 42px;
+  padding: 6px;
+  position: absolute;
+  text-align: center;
+  z-index: 2;
+}
+
+button.mapDistrict {
+  min-height: 42px;
+  padding: 6px;
+}
+
+.mapDistrict.unlocked {
+  background: rgba(225, 249, 236, 0.92);
+  border-color: rgba(19, 168, 115, 0.58);
+  color: #14201b;
+}
+
+.mapDistrict.current {
+  box-shadow: 0 0 0 3px rgba(23, 185, 127, 0.28);
+}
+
+.playMap .mapDistrict:not(:disabled):hover {
+  border-color: #14201b;
+}
+
+.playerMarker {
+  align-items: center;
+  background: #14201b;
+  border: 3px solid #17b97f;
+  border-radius: 999px;
+  color: #f7fff9;
+  display: flex;
+  height: 34px;
+  justify-content: center;
+  position: absolute;
+  transform: translate(-50%, -50%);
+  width: 34px;
+  z-index: 5;
+}
+
+.mapDistrict strong {
+  font-size: 0.75rem;
+  line-height: 1.1;
+}
+
+.mapDistrict span {
+  color: #607268;
+  font-size: 0.68rem;
+  font-weight: 900;
+}
+
+.landmark {
+  background: #14201b;
+  border: 2px solid #ffffff;
+  border-radius: 999px;
+  box-shadow: 0 2px 8px rgba(20, 32, 27, 0.28);
+  height: 12px;
+  position: absolute;
+  transform: translate(-50%, -50%);
+  width: 12px;
+  z-index: 3;
+}
+
+.landmark.aeroporto {
+  background: #6d5dfc;
+}
+
+.landmark.hospital {
+  background: #d84d3f;
+}
+
+.landmark.porto {
+  background: #1e6b84;
+}
+
+.landmark.industria {
+  background: #aa6a1f;
+}
+
+.landmark.lazer {
+  background: #17b97f;
+}
+
+.districtGrid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.districtCard {
+  background: #f5f8f6;
+  border: 1px solid #dbe5df;
+  border-radius: 8px;
+  display: grid;
+  gap: 10px;
+  min-height: 160px;
+  padding: 14px;
+}
+
+.districtCard span,
+.marketRow span,
+.jobCard span {
+  color: #617269;
+  font-size: 0.86rem;
+}
+
+.metricLine {
+  display: grid;
+  gap: 5px;
+}
+
+.metricLine small {
+  color: #617269;
+  font-weight: 800;
+}
+
+.metricLine div {
+  background: #e4ebe7;
+  border-radius: 999px;
+  height: 8px;
+  overflow: hidden;
+}
+
+.metricLine i {
+  background: #2d9275;
+  display: block;
+  height: 100%;
+}
+
+.jobsGrid {
+  grid-template-columns: repeat(5, minmax(180px, 1fr));
+}
+
+.jobCard {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 230px;
+  padding: 14px;
+}
+
+.jobCard h4 {
+  font-size: 1.05rem;
+  margin: 8px 0;
+}
+
+.jobCard p {
+  color: #405149;
+  font-size: 0.92rem;
+  line-height: 1.42;
+}
+
+.jobFooter {
+  display: grid;
+  gap: 10px;
+}
+
+.jobFooter button {
+  background: #17b97f;
+  color: #07140f;
+}
+
+.marketList,
+.activityLog,
+.compactList {
+  display: grid;
+  gap: 10px;
+}
+
+.marketRow,
+.compactRow {
+  align-items: center;
+  border-bottom: 1px solid #edf1ee;
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+  padding-bottom: 10px;
+}
+
+.compactRow svg {
+  color: #0d9167;
+  flex: 0 0 auto;
+}
+
+.marketRow div,
+.compactRow div {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.compactRow strong,
+.compactRow span {
+  overflow-wrap: anywhere;
+}
+
+.marketRow b,
+.compactRow b {
+  white-space: nowrap;
+}
+
+.activityLog p {
+  background: #f4f8f6;
+  border-left: 3px solid #17b97f;
+  border-radius: 4px;
+  color: #34463d;
+  line-height: 1.4;
+  margin: 0;
+  padding: 10px;
+}
+
+@media (max-width: 1180px) {
+  .statsGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .mainGrid,
+  .bottomGrid,
+  .systemMatrix {
+    grid-template-columns: 1fr;
+  }
+
+  .jobsGrid,
+  .districtGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .appShell {
+    grid-template-columns: 1fr;
+  }
+
+  .sidebar {
+    padding: 18px;
+  }
+
+  .navList {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .topbar {
+    align-items: start;
+    flex-direction: column;
+  }
+
+  .statsGrid,
+  .jobsGrid,
+  .districtGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .mapCanvas {
+    min-height: 280px;
+  }
+
+  .workspace {
+    padding: 14px;
+  }
+
+  .creatorGrid {
+    grid-template-columns: 1fr;
+  }
+}
