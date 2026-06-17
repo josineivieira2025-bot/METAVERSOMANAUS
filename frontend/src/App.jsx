@@ -540,32 +540,36 @@ function ThreeCityWorld({ map, playerPosition, setPlayerPosition, joystick, isRu
     scene.add(sun);
 
     const ground = new THREE.Mesh(
-      new THREE.PlaneGeometry(170, 170),
-      new THREE.MeshStandardMaterial({ color: 0x8fc4a8, roughness: 0.9 })
+      new THREE.PlaneGeometry(190, 190),
+      new THREE.MeshStandardMaterial({ color: 0x7fb894, roughness: 0.95 })
     );
     ground.rotation.x = -Math.PI / 2;
     ground.receiveShadow = true;
     scene.add(ground);
 
-    const roadMaterial = new THREE.MeshStandardMaterial({ color: 0x3b4c45, roughness: 0.82 });
+    const roadMaterial = new THREE.MeshStandardMaterial({ color: 0x2f3835, roughness: 0.88 });
+    const sidewalkMaterial = new THREE.MeshStandardMaterial({ color: 0xb9c6bd, roughness: 0.86 });
+    const lineMaterial = new THREE.MeshStandardMaterial({ color: 0xf1d36a, roughness: 0.7 });
     for (let i = -4; i <= 4; i += 1) {
-      const horizontal = new THREE.Mesh(new THREE.BoxGeometry(150, 0.08, 3.2), roadMaterial);
-      horizontal.position.set(0, 0.04, i * 16);
-      horizontal.receiveShadow = true;
-      scene.add(horizontal);
-
-      const vertical = new THREE.Mesh(new THREE.BoxGeometry(3.2, 0.08, 150), roadMaterial);
-      vertical.position.set(i * 16, 0.05, 0);
-      vertical.receiveShadow = true;
-      scene.add(vertical);
+      addRoad(scene, 'horizontal', i * 16, roadMaterial, sidewalkMaterial, lineMaterial);
+      addRoad(scene, 'vertical', i * 16, roadMaterial, sidewalkMaterial, lineMaterial);
     }
 
     const river = new THREE.Mesh(
-      new THREE.BoxGeometry(190, 0.12, 26),
-      new THREE.MeshStandardMaterial({ color: 0x1b7892, roughness: 0.45, metalness: 0.05 })
+      new THREE.BoxGeometry(210, 0.16, 28),
+      new THREE.MeshStandardMaterial({ color: 0x1b7892, roughness: 0.22, metalness: 0.12 })
     );
     river.position.set(0, 0.07, 66);
     scene.add(river);
+
+    for (let i = 0; i < 16; i += 1) {
+      const wave = new THREE.Mesh(
+        new THREE.BoxGeometry(8 + (i % 3) * 4, 0.02, 0.12),
+        new THREE.MeshStandardMaterial({ color: 0x9ed6df, roughness: 0.1 })
+      );
+      wave.position.set(-78 + i * 10, 0.18, 57 + (i % 5) * 3);
+      scene.add(wave);
+    }
 
     const buildingMaterials = [
       new THREE.MeshStandardMaterial({ color: 0xe5ebe7, roughness: 0.76 }),
@@ -577,27 +581,34 @@ function ThreeCityWorld({ map, playerPosition, setPlayerPosition, joystick, isRu
     map.districts.forEach((district, index) => {
       const center = worldToThree(getDistrictCenter(district));
       const districtBase = new THREE.Mesh(
-        new THREE.BoxGeometry(Math.max(6, district.width * 0.72), 0.18, Math.max(5, district.height * 0.72)),
-        new THREE.MeshStandardMaterial({ color: district.unlocked ? 0x6bd6a3 : 0xbfc9c3, roughness: 0.85 })
+        new THREE.BoxGeometry(Math.max(7, district.width * 0.8), 0.18, Math.max(6, district.height * 0.8)),
+        new THREE.MeshStandardMaterial({ color: district.unlocked ? 0x5ec994 : 0xbfc9c3, roughness: 0.9 })
       );
       districtBase.position.set(center.x, 0.11, center.z);
       scene.add(districtBase);
 
       const count = district.unlocked ? 4 : 2;
       for (let i = 0; i < count; i += 1) {
-        const height = 2.5 + ((index + i) % 5) * 1.4;
-        const building = new THREE.Mesh(
-          new THREE.BoxGeometry(2.6 + (i % 2), height, 2.4 + ((i + 1) % 2)),
-          buildingMaterials[(index + i) % buildingMaterials.length]
+        const height = 4 + ((index + i) % 7) * 1.6;
+        const building = createBuilding(
+          3.2 + (i % 2) * 1.2,
+          height,
+          3 + ((i + 1) % 2) * 1.4,
+          buildingMaterials[(index + i) % buildingMaterials.length],
+          index + i
         );
         building.position.set(
           center.x + (i - 1.5) * 3.3,
-          height / 2,
+          0,
           center.z + ((i % 2) - 0.5) * 4.2
         );
-        building.castShadow = true;
-        building.receiveShadow = true;
         scene.add(building);
+      }
+
+      if (district.unlocked) {
+        addTree(scene, center.x - district.width * 0.45, center.z - district.height * 0.35);
+        addTree(scene, center.x + district.width * 0.45, center.z + district.height * 0.25);
+        addStreetLight(scene, center.x - district.width * 0.38, center.z + district.height * 0.42);
       }
     });
 
@@ -675,9 +686,9 @@ function ThreeCityWorld({ map, playerPosition, setPlayerPosition, joystick, isRu
       player.position.x = THREE.MathUtils.clamp(player.position.x, -76, 76);
       player.position.z = THREE.MathUtils.clamp(player.position.z, -76, 76);
 
-      const targetCamera = new THREE.Vector3(player.position.x, player.position.y + 12, player.position.z + 18);
-      camera.position.lerp(targetCamera, 0.09);
-      camera.lookAt(player.position.x, player.position.y + 3, player.position.z);
+      const targetCamera = new THREE.Vector3(player.position.x, player.position.y + 7.5, player.position.z + 12);
+      camera.position.lerp(targetCamera, 0.11);
+      camera.lookAt(player.position.x, player.position.y + 2.8, player.position.z - 2);
 
       const uiPosition = threeToWorld(player.position);
       state.position = uiPosition;
@@ -731,14 +742,117 @@ function landmarkColor(type) {
   }[type] || 0x102019;
 }
 
+function addRoad(scene, orientation, offset, roadMaterial, sidewalkMaterial, lineMaterial) {
+  const isHorizontal = orientation === 'horizontal';
+  const road = new THREE.Mesh(
+    new THREE.BoxGeometry(isHorizontal ? 165 : 4.2, 0.08, isHorizontal ? 4.2 : 165),
+    roadMaterial
+  );
+  road.position.set(isHorizontal ? 0 : offset, 0.05, isHorizontal ? offset : 0);
+  road.receiveShadow = true;
+  scene.add(road);
+
+  const sidewalkA = new THREE.Mesh(
+    new THREE.BoxGeometry(isHorizontal ? 165 : 1.8, 0.1, isHorizontal ? 1.8 : 165),
+    sidewalkMaterial
+  );
+  sidewalkA.position.set(isHorizontal ? 0 : offset - 3.2, 0.11, isHorizontal ? offset - 3.2 : 0);
+  scene.add(sidewalkA);
+
+  const sidewalkB = sidewalkA.clone();
+  sidewalkB.position.set(isHorizontal ? 0 : offset + 3.2, 0.11, isHorizontal ? offset + 3.2 : 0);
+  scene.add(sidewalkB);
+
+  for (let marker = -72; marker <= 72; marker += 12) {
+    const line = new THREE.Mesh(
+      new THREE.BoxGeometry(isHorizontal ? 4.8 : 0.22, 0.14, isHorizontal ? 0.22 : 4.8),
+      lineMaterial
+    );
+    line.position.set(isHorizontal ? marker : offset, 0.16, isHorizontal ? offset : marker);
+    scene.add(line);
+  }
+}
+
+function createBuilding(width, height, depth, material, seed) {
+  const group = new THREE.Group();
+  const tower = new THREE.Mesh(new THREE.BoxGeometry(width, height, depth), material);
+  tower.position.y = height / 2;
+  tower.castShadow = true;
+  tower.receiveShadow = true;
+  group.add(tower);
+
+  const windowMaterial = new THREE.MeshStandardMaterial({
+    color: 0xbde5f0,
+    emissive: seed % 3 === 0 ? 0x18333a : 0x000000,
+    emissiveIntensity: seed % 3 === 0 ? 0.25 : 0,
+    roughness: 0.28
+  });
+  const rows = Math.max(2, Math.floor(height / 1.5));
+  const cols = Math.max(2, Math.floor(width / 1.1));
+
+  for (let row = 0; row < rows; row += 1) {
+    for (let col = 0; col < cols; col += 1) {
+      if ((row + col + seed) % 5 === 0) continue;
+      const windowMesh = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.42, 0.04), windowMaterial);
+      windowMesh.position.set(
+        -width / 2 + 0.7 + col * 0.85,
+        0.9 + row * 1.05,
+        depth / 2 + 0.03
+      );
+      group.add(windowMesh);
+    }
+  }
+
+  const roof = new THREE.Mesh(
+    new THREE.BoxGeometry(width + 0.35, 0.24, depth + 0.35),
+    new THREE.MeshStandardMaterial({ color: 0x39423d, roughness: 0.9 })
+  );
+  roof.position.y = height + 0.14;
+  group.add(roof);
+
+  return group;
+}
+
+function addTree(scene, x, z) {
+  const trunk = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.18, 0.24, 1.5, 8),
+    new THREE.MeshStandardMaterial({ color: 0x745132, roughness: 0.9 })
+  );
+  trunk.position.set(x, 0.75, z);
+  trunk.castShadow = true;
+  scene.add(trunk);
+
+  const crown = new THREE.Mesh(
+    new THREE.SphereGeometry(1.05, 12, 12),
+    new THREE.MeshStandardMaterial({ color: 0x1f7b4e, roughness: 0.75 })
+  );
+  crown.position.set(x, 1.95, z);
+  crown.castShadow = true;
+  scene.add(crown);
+}
+
+function addStreetLight(scene, x, z) {
+  const poleMaterial = new THREE.MeshStandardMaterial({ color: 0x2d3430, roughness: 0.45 });
+  const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.1, 3.4, 8), poleMaterial);
+  pole.position.set(x, 1.7, z);
+  scene.add(pole);
+
+  const lamp = new THREE.Mesh(
+    new THREE.SphereGeometry(0.22, 10, 10),
+    new THREE.MeshStandardMaterial({ color: 0xfff2b0, emissive: 0xffd36a, emissiveIntensity: 0.8 })
+  );
+  lamp.position.set(x, 3.48, z);
+  scene.add(lamp);
+}
+
 function createPlayerMesh() {
   const group = new THREE.Group();
-  const bodyMaterial = new THREE.MeshStandardMaterial({ color: 0x14b77c, roughness: 0.5 });
+  const bodyMaterial = new THREE.MeshStandardMaterial({ color: 0x1f8bd6, roughness: 0.48 });
   const darkMaterial = new THREE.MeshStandardMaterial({ color: 0x102019, roughness: 0.7 });
   const skinMaterial = new THREE.MeshStandardMaterial({ color: 0xf0c29c, roughness: 0.62 });
 
-  const body = new THREE.Mesh(new THREE.CapsuleGeometry(1, 2.2, 6, 12), bodyMaterial);
-  body.position.y = 2.3;
+  const body = new THREE.Mesh(new THREE.CapsuleGeometry(0.78, 2.1, 7, 14), bodyMaterial);
+  body.position.y = 2.35;
   body.castShadow = true;
   group.add(body);
 
@@ -746,6 +860,21 @@ function createPlayerMesh() {
   head.position.y = 4.25;
   head.castShadow = true;
   group.add(head);
+
+  const hair = new THREE.Mesh(new THREE.SphereGeometry(0.82, 16, 8, 0, Math.PI * 2, 0, Math.PI * 0.48), darkMaterial);
+  hair.position.y = 4.48;
+  group.add(hair);
+
+  const leftArm = new THREE.Mesh(new THREE.CapsuleGeometry(0.18, 1.35, 4, 8), skinMaterial);
+  leftArm.position.set(-0.95, 2.35, 0.02);
+  leftArm.rotation.z = -0.16;
+  leftArm.castShadow = true;
+  group.add(leftArm);
+
+  const rightArm = leftArm.clone();
+  rightArm.position.x = 0.95;
+  rightArm.rotation.z = 0.16;
+  group.add(rightArm);
 
   const leftLeg = new THREE.Mesh(new THREE.CapsuleGeometry(0.22, 1.3, 4, 8), darkMaterial);
   leftLeg.position.set(-0.38, 0.75, 0);
