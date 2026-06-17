@@ -12,6 +12,8 @@ Este repositório inicia a fundação de produto, design e engenharia para um jo
 - `database/schema.sql`: schema inicial PostgreSQL para conta, personagem, economia, empresas, imoveis, veiculos e social.
 - `backend/`: esqueleto Node.js/Express para API e servicos online.
 - `frontend/`: dashboard web inicial para operacao, comunidade e planejamento.
+- `unreal/`: base Unreal Engine 5 para o cliente AAA em terceira pessoa.
+- `docs/UE5_AAA_PRODUCTION_SPEC.md`: especificacao de producao AAA, pipeline Manaus 1:1, personagens, veiculos, IA e multiplayer.
 
 ## MVP tecnico atual
 
@@ -29,6 +31,25 @@ O prototipo atual inclui:
 - Movimento do personagem entre bairros desbloqueados com impacto em energia, sede e estresse.
 - Empresas, imoveis, veiculos, inventario, missoes, servicos publicos e moderacao no MongoDB.
 - Dashboard React para acompanhar e acionar sistemas do MVP.
+
+## Cliente AAA Unreal Engine 5
+
+O alvo visual real do jogo fica em `unreal/ManausMetaverse.uproject`.
+
+Esta base ja configura:
+
+- Lumen.
+- Nanite.
+- Ray Tracing.
+- Virtual Shadow Maps.
+- Volumetric Fog.
+- Enhanced Input.
+- Chaos Vehicles.
+- Mass AI.
+- IKRig/Motion Warping.
+- Camera terceira pessoa.
+
+O prototipo web continua util para testar backend, login, mapa logico e economia, mas nao representa a qualidade visual final.
 
 ### Rodar localmente
 
