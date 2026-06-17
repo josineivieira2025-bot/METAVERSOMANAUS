@@ -279,8 +279,13 @@ select {
   height: 54px;
   position: absolute;
   transform: translate(-50%, -76%);
+  transition: transform 0.12s ease;
   width: 38px;
   z-index: 8;
+}
+
+.avatar.jumping {
+  transform: translate(-50%, -112%) scale(1.04);
 }
 
 .avatarHead {
@@ -379,6 +384,79 @@ select {
   left: 50%;
   max-width: min(520px, calc(100vw - 36px));
   transform: translateX(-50%);
+}
+
+.mobileJoystick {
+  align-items: center;
+  background: rgba(9, 22, 16, 0.48);
+  border: 2px solid rgba(255, 255, 255, 0.22);
+  border-radius: 999px;
+  bottom: 44px;
+  display: flex;
+  height: 128px;
+  justify-content: center;
+  left: 42px;
+  position: absolute;
+  touch-action: none;
+  width: 128px;
+  z-index: 14;
+}
+
+.joystickKnob {
+  background: linear-gradient(180deg, #f7fff9, #17b97f);
+  border: 4px solid rgba(9, 22, 16, 0.86);
+  border-radius: 999px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.28);
+  height: 58px;
+  width: 58px;
+}
+
+.mobileActions {
+  bottom: 38px;
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(2, 74px);
+  position: absolute;
+  right: 36px;
+  z-index: 14;
+}
+
+.actionButton {
+  aspect-ratio: 1;
+  background: rgba(9, 22, 16, 0.78);
+  border: 2px solid rgba(255, 255, 255, 0.18);
+  border-radius: 999px;
+  color: #f7fff9;
+  font-size: 0.78rem;
+  padding: 0;
+}
+
+.actionButton.primary,
+.actionButton.active {
+  background: #17b97f;
+  color: #07140f;
+}
+
+.mobilePanel {
+  background: rgba(247, 255, 249, 0.96);
+  border: 1px solid rgba(20, 32, 27, 0.12);
+  border-radius: 8px;
+  bottom: 190px;
+  color: #14201b;
+  max-height: 360px;
+  overflow: auto;
+  padding: 14px;
+  position: absolute;
+  right: 28px;
+  width: min(360px, calc(100vw - 56px));
+  z-index: 16;
+}
+
+.panelAction {
+  background: #102019;
+  color: #f7fff9;
+  justify-content: start;
+  width: 100%;
 }
 
 .miniNeeds {
@@ -963,5 +1041,41 @@ button.mapDistrict {
 
   .centerBottom {
     transform: none;
+  }
+
+  .bottomRight {
+    display: none;
+  }
+
+  .bottomLeft {
+    width: auto;
+  }
+
+  .mobileJoystick {
+    bottom: 28px;
+    height: 118px;
+    left: 24px;
+    position: fixed;
+    width: 118px;
+  }
+
+  .mobileActions {
+    bottom: 24px;
+    grid-template-columns: repeat(2, 68px);
+    position: fixed;
+    right: 18px;
+  }
+
+  .mobilePanel {
+    bottom: 170px;
+    position: fixed;
+    right: 14px;
+  }
+}
+
+@media (min-width: 761px) {
+  .mobileJoystick,
+  .mobileActions {
+    opacity: 0.92;
   }
 }

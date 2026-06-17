@@ -302,6 +302,10 @@ function GameWorldView({
   onRefresh
 }) {
   const [playerPosition, setPlayerPosition] = useState(character.position || { x: 55, y: 60 });
+  const [joystick, setJoystick] = useState({ active: false, dx: 0, dy: 0 });
+  const [isRunning, setIsRunning] = useState(false);
+  const [isJumping, setIsJumping] = useState(false);
+  const [openPanel, setOpenPanel] = useState(null);
   const activeJob = jobs.find((job) => job.id === character?.activeJobId);
   const currentDistrict = map.districts.find((district) => (
     playerPosition.x >= district.x &&
@@ -344,6 +348,47 @@ function GameWorldView({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
+  useEffect(() => {
+    if (!joystick.active) return undefined;
+
+    const interval = window.setInterval(() => {
+      const speed = isRunning ? 1.15 : 0.62;
+      setPlayerPosition((current) => ({
+        x: Math.min(94, Math.max(6, current.x + joystick.dx * speed)),
+        y: Math.min(86, Math.max(8, current.y + joystick.dy * speed))
+      }));
+    }, 32);
+
+    return () => window.clearInterval(interval);
+  }, [joystick, isRunning]);
+
+  function updateJoystick(event) {
+    const rect = event.currentTarget.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+    const rawX = event.clientX - centerX;
+    const rawY = event.clientY - centerY;
+    const distance = Math.min(42, Math.hypot(rawX, rawY));
+    const angle = Math.atan2(rawY, rawX);
+
+    setJoystick({
+      active: true,
+      dx: Number((Math.cos(angle) * (distance / 42)).toFixed(3)),
+      dy: Number((Math.sin(angle) * (distance / 42)).toFixed(3)),
+      knobX: Math.cos(angle) * distance,
+      knobY: Math.sin(angle) * distance
+    });
+  }
+
+  function stopJoystick() {
+    setJoystick({ active: false, dx: 0, dy: 0, knobX: 0, knobY: 0 });
+  }
+
+  function jump() {
+    setIsJumping(true);
+    window.setTimeout(() => setIsJumping(false), 420);
+  }
+
   const districtById = new globalThis.Map(map.districts.map((district) => [district.id, district]));
 
   return (
@@ -383,7 +428,7 @@ function GameWorldView({
           />
         ))}
 
-        <div className="avatar" style={{ left: `${playerPosition.x}%`, top: `${playerPosition.y}%` }}>
+        <div className={isJumping ? 'avatar jumping' : 'avatar'} style={{ left: `${playerPosition.x}%`, top: `${playerPosition.y}%` }}>
           <div className="avatarHead" />
           <div className="avatarBody" />
         </div>
@@ -420,8 +465,60 @@ function GameWorldView({
         ))}
       </aside>
 
+      <div
+        className="mobileJoystick"
+        onPointerCancel={stopJoystick}
+        onPointerDown={updateJoystick}
+        onPointerLeave={stopJoystick}
+        onPointerMove={(event) => joystick.active && updateJoystick(event)}
+        onPointerUp={stopJoystick}
+        role="presentation"
+      >
+        <div
+          className="joystickKnob"
+          style={{ transform: `translate(${joystick.knobX || 0}px, ${joystick.knobY || 0}px)` }}
+        />
+      </div>
+
+      <div className="mobileActions">
+        <button className={isRunning ? 'actionButton active' : 'actionButton'} type="button" onClick={() => setIsRunning((value) => !value)}>Correr</button>
+        <button className="actionButton" type="button" onClick={jump}>Pular</button>
+        <button className="actionButton" type="button" onClick={() => setOpenPanel(openPanel === 'bag' ? null : 'bag')}>Mochila</button>
+        <button className="actionButton primary" type="button" onClick={() => setOpenPanel(openPanel === 'work' ? null : 'work')}>Acoes</button>
+      </div>
+
+      {openPanel && (
+        <aside className="mobilePanel">
+          <div className="panelHeader">
+            <div>
+              <p className="eyebrow">{openPanel === 'bag' ? 'Mochila' : 'Acoes'}</p>
+              <h3>{openPanel === 'bag' ? 'Inventario' : 'Trabalho rapido'}</h3>
+            </div>
+            <button className="iconButton" type="button" onClick={() => setOpenPanel(null)}>X</button>
+          </div>
+          {openPanel === 'bag' ? (
+            <div className="compactList">
+              {core.inventory.map((item) => (
+                <div className="compactRow" key={item.id}>
+                  <Package size={18} />
+                  <div><strong>{item.name}</strong><span>{item.code} | qtd {item.quantity}</span></div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="compactList">
+              {jobs.slice(0, 5).map((job) => (
+                <button className="panelAction" key={job.id} type="button" onClick={() => onStartJob(job.id)}>
+                  {job.name}
+                </button>
+              ))}
+            </div>
+          )}
+        </aside>
+      )}
+
       <aside className="gameHud centerBottom">
-        <span>WASD ou setas para andar</span>
+        <span>Analógico no mobile | WASD ou setas no PC</span>
         <span>{core.vehicles.length} veiculos | {core.inventory.length} itens | {economy.prices.length} precos</span>
         <span>{activityLog[0]}</span>
       </aside>
